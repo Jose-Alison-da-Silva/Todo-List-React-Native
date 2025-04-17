@@ -5,5 +5,7 @@ export const theme = {
     lightGray: "#d7d8d7",
     gray: "gray",
     bgScreen: "#f1f7fa",
+    red: "#ff494c",
+    blueLight: "#87cef6",
   },
 };

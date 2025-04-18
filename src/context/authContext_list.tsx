@@ -118,6 +118,7 @@ export const AuthProviderList = (props: any) => {
   };
 
   const clearStates = () => {
+    setItem(0);
     setTitle("");
     setDescription("");
     setSelectedFlag("Urgente");

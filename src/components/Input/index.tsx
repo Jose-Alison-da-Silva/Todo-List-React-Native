@@ -9,6 +9,8 @@ import {
   Text,
   TextInputProps,
   TouchableOpacity,
+  StyleProp,
+  TextStyle,
 } from "react-native";
 
 type IconComponent =
@@ -24,6 +26,8 @@ type Props = TextInputProps & {
   title?: string;
   OnIconLeftPress?: () => void;
   OnIconRightPress?: () => void;
+  height?: number;
+  labelStyle?: StyleProp<TextStyle>;
 };
 
 export default function Input(
@@ -35,6 +39,8 @@ export default function Input(
     title,
     OnIconLeftPress,
     OnIconRightPress,
+    height,
+    labelStyle,
     ...props
   }: Props,
   ref: LegacyRef<TextInput> | null
@@ -61,10 +67,13 @@ export default function Input(
 
   return (
     <>
-      {title && <Text style={styles.label}>{title}</Text>}
+      {title && <Text style={[styles.label, labelStyle]}>{title}</Text>}
 
       <View
-        style={[styles.boxInput, { paddingLeft: calculateSizePaddingLeft() }]}
+        style={[
+          styles.boxInput,
+          { paddingLeft: calculateSizePaddingLeft(), height: height || 40 },
+        ]}
       >
         {IconLeft && iconLeftName && (
           <TouchableOpacity onPress={OnIconLeftPress}>
@@ -79,7 +88,10 @@ export default function Input(
         )}
 
         <TextInput
-          style={[styles.input, { width: calculateSizeWidth() }]}
+          style={[
+            styles.input,
+            { width: calculateSizeWidth(), height: "100%" },
+          ]}
           {...props}
           ref={ref}
         />

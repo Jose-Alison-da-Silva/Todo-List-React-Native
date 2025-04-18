@@ -41,6 +41,7 @@ export const AuthProviderList = (props: any) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [taskList, setTaskList] = useState([]);
+  const [taskListBackup, setTaskListBackup] = useState([]);
   const [item, setItem] = useState(0);
 
   const openModal = () => {
@@ -108,6 +109,7 @@ export const AuthProviderList = (props: any) => {
       await AsyncStorage.setItem("task", JSON.stringify(dataTasks));
 
       setTaskList(dataTasks);
+      setTaskListBackup(dataTasks);
       clearStates();
       closeModal();
     } catch (error) {
@@ -127,6 +129,7 @@ export const AuthProviderList = (props: any) => {
     try {
       const tasks = await AsyncStorage.getItem("task");
       setTaskList(tasks ? JSON.parse(tasks) : []);
+      setTaskListBackup(tasks ? JSON.parse(tasks) : []);
     } catch (error) {
       console.log("Erro ao carregar tasks", error);
     }
@@ -142,6 +145,7 @@ export const AuthProviderList = (props: any) => {
       );
       await AsyncStorage.setItem("task", JSON.stringify(newDataTasks));
       setTaskList(newDataTasks);
+      setTaskListBackup(newDataTasks);
     } catch (error) {
       console.log("Erro ao deletar task", error);
     }
@@ -165,6 +169,30 @@ export const AuthProviderList = (props: any) => {
       openModal();
     } catch (error) {
       console.log("Erro ao editar task", error);
+    }
+  };
+
+  const filter = (value: string) => {
+    const array = taskListBackup;
+    const fields = ["title", "description"];
+
+    if (value) {
+      const searchTerm = value.trim().toLowerCase();
+
+      const filteredArray = array.filter((item: any) => {
+        for (let i = 0; i < fields.length; i++) {
+          if (
+            item[fields[i]] &&
+            item[fields[i]].toLowerCase().includes(searchTerm)
+          ) {
+            return true;
+          }
+        }
+      });
+
+      setTaskList(filteredArray);
+    } else {
+      setTaskList(taskListBackup);
     }
   };
 
@@ -268,7 +296,7 @@ export const AuthProviderList = (props: any) => {
 
   return (
     <AuthContextList.Provider
-      value={{ openModal, taskList, handleDelete, handleEdit }}
+      value={{ openModal, taskList, handleDelete, handleEdit, filter }}
     >
       {props.children}
 

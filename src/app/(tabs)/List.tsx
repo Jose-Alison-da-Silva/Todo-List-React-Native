@@ -6,17 +6,8 @@ import { theme } from "@/src/styles/theme";
 import { formatDateToBR } from "@/src/utils/formatDate";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import React, { useContext, useRef } from "react";
-import Swipeable, {
-  SwipeableMethods,
-} from "react-native-gesture-handler/ReanimatedSwipeable";
-import {
-  Text,
-  StyleSheet,
-  View,
-  Dimensions,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { Text, StyleSheet, View, Dimensions, FlatList } from "react-native";
 
 export type PropCard = {
   item: number;
@@ -31,10 +22,11 @@ interface AuthContextType {
   openModal: void;
   handleEdit: (item: PropCard) => void;
   handleDelete: (item: PropCard) => void;
+  filter: (value: string) => void;
 }
 
 export default function List() {
-  const { taskList, handleDelete, handleEdit } =
+  const { taskList, handleDelete, handleEdit, filter } =
     useContext<AuthContextType>(AuthContextList);
   const swipeableRef = useRef([] as any);
 
@@ -109,7 +101,11 @@ export default function List() {
         </Text>
 
         <View style={styles.boxInput}>
-          <Input IconLeft={MaterialIcons} iconLeftName="search" />
+          <Input
+            IconLeft={MaterialIcons}
+            iconLeftName="search"
+            onChangeText={filter}
+          />
         </View>
       </View>
 
@@ -158,7 +154,7 @@ export const styles = StyleSheet.create({
 
   card: {
     width: "100%",
-    height: 70,
+    minHeight: 70,
     backgroundColor: "#fff",
     borderRadius: 10,
     marginTop: 6,

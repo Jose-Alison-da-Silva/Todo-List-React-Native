@@ -9,6 +9,7 @@ type Props = {
   show: boolean;
   setShow: (value: boolean) => void;
   onDateChange: (date: any) => void;
+  initialValue?: Date;
 };
 
 export default function CustomDateTimePicker({
@@ -16,8 +17,15 @@ export default function CustomDateTimePicker({
   onDateChange,
   show,
   setShow,
+  initialValue,
 }: Props) {
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(initialValue || new Date());
+
+  useEffect(() => {
+    if (initialValue) {
+      setDate(initialValue);
+    }
+  }, [initialValue]);
 
   useEffect(() => {
     if (onDateChange) {

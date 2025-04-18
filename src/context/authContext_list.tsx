@@ -1,5 +1,11 @@
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import React, { createContext, useContext, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Dimensions,
   Text,
@@ -16,8 +22,9 @@ import { theme } from "../styles/theme";
 import Flag from "../components/Flag";
 import CustomDateTimePicker from "../components/CustomDateTimePicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PropCard } from "../app/(tabs)/List";
 
-export const AuthContextList = createContext({});
+export const AuthContextList: any = createContext({});
 
 const flags = [
   { caption: "Urgente", color: theme.colors.red },
@@ -34,6 +41,7 @@ export const AuthProviderList = (props: any) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [taskList, setTaskList] = useState([]);
+  const [item, setItem] = useState(0);
 
   const openModal = () => {
     modalizeRef.current?.open();
@@ -41,7 +49,12 @@ export const AuthProviderList = (props: any) => {
 
   const closeModal = () => {
     modalizeRef.current?.close();
+    clearStates();
   };
+
+  useEffect(() => {
+    getTasks();
+  }, []);
 
   const _renderFlags = () => {
     return flags.map((item, index) => {
@@ -67,7 +80,7 @@ export const AuthProviderList = (props: any) => {
 
     try {
       const data = {
-        id: Date.now(),
+        item: item !== 0 ? item : Date.now(),
         title: title,
         description: description,
         flag: selectedFlag,
@@ -80,10 +93,17 @@ export const AuthProviderList = (props: any) => {
         ).toISOString(),
       };
       const tasks = await AsyncStorage.getItem("task");
-
       let dataTasks = tasks ? JSON.parse(tasks) : [];
 
-      dataTasks.push(data);
+      const itemIndex = dataTasks.findIndex(
+        (task: any) => task.item === data.item
+      );
+
+      if (itemIndex >= 0) {
+        dataTasks[itemIndex] = data;
+      } else {
+        dataTasks.push(data);
+      }
 
       await AsyncStorage.setItem("task", JSON.stringify(dataTasks));
 
@@ -101,6 +121,51 @@ export const AuthProviderList = (props: any) => {
     setSelectedFlag("Urgente");
     setSelectedDate(new Date());
     setSelectedTime(new Date());
+  };
+
+  async function getTasks() {
+    try {
+      const tasks = await AsyncStorage.getItem("task");
+      setTaskList(tasks ? JSON.parse(tasks) : []);
+    } catch (error) {
+      console.log("Erro ao carregar tasks", error);
+    }
+  }
+
+  const handleDelete = async (itemToDelete: PropCard) => {
+    try {
+      const tasks = await AsyncStorage.getItem("task");
+      const dataTasks = tasks ? JSON.parse(tasks) : [];
+
+      const newDataTasks = dataTasks.filter(
+        (task: any) => task.item !== itemToDelete.item
+      );
+      await AsyncStorage.setItem("task", JSON.stringify(newDataTasks));
+      setTaskList(newDataTasks);
+    } catch (error) {
+      console.log("Erro ao deletar task", error);
+    }
+  };
+
+  const handleEdit = async (itemToEdit: PropCard) => {
+    try {
+      setItem(itemToEdit.item);
+      setTitle(itemToEdit.title);
+      setDescription(itemToEdit.description);
+      setSelectedFlag(itemToEdit.flag);
+
+      const date = new Date(itemToEdit.fullDate);
+      setSelectedDate(date);
+      setSelectedTime(date);
+      openModal();
+
+      console.log("Data original ISO:", itemToEdit.fullDate);
+      console.log("Objeto Date criado:", date);
+
+      openModal();
+    } catch (error) {
+      console.log("Erro ao editar task", error);
+    }
   };
 
   const _container = () => {
@@ -180,6 +245,7 @@ export const AuthProviderList = (props: any) => {
               setShow={setShowDatePicker}
               show={showDatePicker}
               type="date"
+              initialValue={selectedDate}
             />
 
             <CustomDateTimePicker
@@ -187,6 +253,7 @@ export const AuthProviderList = (props: any) => {
               setShow={setShowTimePicker}
               show={showTimePicker}
               type="time"
+              initialValue={selectedTime}
             />
           </View>
 
@@ -200,7 +267,9 @@ export const AuthProviderList = (props: any) => {
   };
 
   return (
-    <AuthContextList.Provider value={{ openModal, taskList }}>
+    <AuthContextList.Provider
+      value={{ openModal, taskList, handleDelete, handleEdit }}
+    >
       {props.children}
 
       <Modalize

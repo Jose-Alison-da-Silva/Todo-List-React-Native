@@ -1,9 +1,14 @@
 import Ball from "@/src/components/Ball";
 import Flag from "@/src/components/Flag";
 import Input from "@/src/components/Input";
+import { AuthContextList } from "@/src/context/authContext_list";
 import { theme } from "@/src/styles/theme";
-import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+import { formatDateToBR } from "@/src/utils/formatDate";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import React, { useContext, useRef } from "react";
+import Swipeable, {
+  SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 import {
   Text,
   StyleSheet,
@@ -13,51 +18,86 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-type PropCard = {
+export type PropCard = {
   item: number;
   title: string;
   description: string;
-  flag: "urgente" | "optional";
+  fullDate: string;
+  flag: "Urgente" | "Optional";
 };
 
-const data: Array<PropCard> = [
-  {
-    item: 1,
-    title: "Item 1",
-    description: "Description item 1",
-    flag: "urgente",
-  },
-  {
-    item: 2,
-    title: "Item 2",
-    description: "Description item 2",
-    flag: "urgente",
-  },
-  {
-    item: 3,
-    title: "Item 3",
-    description: "Description item 3",
-    flag: "urgente",
-  },
-];
+interface AuthContextType {
+  taskList: Array<PropCard>;
+  openModal: void;
+  handleEdit: (item: PropCard) => void;
+  handleDelete: (item: PropCard) => void;
+}
 
 export default function List() {
-  const _renderCard = (item: PropCard) => {
+  const { taskList, handleDelete, handleEdit } =
+    useContext<AuthContextType>(AuthContextList);
+  const swipeableRef = useRef([] as any);
+
+  const rightActions = () => {
     return (
-      <TouchableOpacity style={styles.card}>
-        <View style={styles.rowCard}>
-          <View style={styles.rowCardLeft}>
-            <Ball color="red" />
+      <View style={styles.button}>
+        <AntDesign name="delete" size={20} color="white" />
+      </View>
+    );
+  };
 
-            <View>
-              <Text style={styles.titleCard}>{item.title}</Text>
-              <Text style={styles.descriptionCard}>{item.description}</Text>
+  const leftActions = () => {
+    return (
+      <View
+        style={[styles.button, { backgroundColor: theme.colors.blueLight }]}
+      >
+        <AntDesign name="edit" size={20} color="white" />
+      </View>
+    );
+  };
+
+  const handleSwipeOpen = (
+    item: PropCard,
+    index: number,
+    direction: "right" | "left"
+  ) => {
+    if (direction === "right") {
+      handleDelete(item);
+    } else {
+      handleEdit(item);
+    }
+    swipeableRef.current[index]?.close();
+  };
+
+  const _renderCard = (item: PropCard, index: number) => {
+    const color =
+      item.flag === "Urgente" ? theme.colors.red : theme.colors.blueLight;
+    return (
+      <Swipeable
+        ref={(ref) => (swipeableRef.current[index] = ref)}
+        key={index}
+        renderRightActions={rightActions}
+        renderLeftActions={leftActions}
+        onSwipeableOpen={(direction) => handleSwipeOpen(item, index, direction)}
+      >
+        <View style={styles.card}>
+          <View style={styles.rowCard}>
+            <View style={styles.rowCardLeft}>
+              <Ball color={color} />
+
+              <View>
+                <Text style={styles.titleCard}>{item.title}</Text>
+                <Text style={styles.descriptionCard}>{item.description}</Text>
+                <Text style={styles.descriptionCard}>
+                  até {formatDateToBR(item.fullDate)}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <Flag caption="Urgente" color={theme.colors.red} />
+            <Flag caption={item.flag} color={color} />
+          </View>
         </View>
-      </TouchableOpacity>
+      </Swipeable>
     );
   };
 
@@ -75,10 +115,10 @@ export default function List() {
 
       <View style={styles.boxList}>
         <FlatList
-          data={data}
+          data={taskList}
           keyExtractor={(item) => item.item.toString()}
-          renderItem={({ item }) => {
-            return _renderCard(item);
+          renderItem={({ item, index }) => {
+            return _renderCard(item, index);
           }}
           style={{ marginTop: 40, paddingHorizontal: 30 }}
         />
@@ -118,7 +158,7 @@ export const styles = StyleSheet.create({
 
   card: {
     width: "100%",
-    height: 60,
+    height: 70,
     backgroundColor: "#fff",
     borderRadius: 10,
     marginTop: 6,
@@ -148,5 +188,14 @@ export const styles = StyleSheet.create({
 
   descriptionCard: {
     color: theme.colors.gray,
+  },
+
+  button: {
+    backgroundColor: theme.colors.red,
+    justifyContent: "center",
+    alignItems: "center",
+    width: 100,
+    borderRadius: 10,
+    marginVertical: 10,
   },
 });

@@ -13,6 +13,7 @@ import { Modalize } from "react-native-modalize";
 import Input from "../components/Input";
 import { theme } from "../styles/theme";
 import Flag from "../components/Flag";
+import CustomDateTimePicker from "../components/CustomDateTimePicker";
 
 export const AuthContextList = createContext({});
 
@@ -28,6 +29,8 @@ export const AuthProviderList = (props: any) => {
   const [selectedFlag, setSelectedFlag] = useState("Urgente");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const openModal = () => {
     modalizeRef.current?.open();
@@ -68,6 +71,7 @@ export const AuthProviderList = (props: any) => {
           <Input
             title="Título:"
             labelStyle={styles.label}
+            height={50}
             value={title}
             onChangeText={setTitle}
           />
@@ -79,10 +83,58 @@ export const AuthProviderList = (props: any) => {
             numberOfLines={5}
             value={description}
             onChangeText={setDescription}
+            textAlignVertical="top"
           />
 
           <View style={{ width: "40%" }}>
-            <Input title="Tempo Limite:" labelStyle={styles.label} />
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 10,
+                width: "100%",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={{ width: 150 }}
+              >
+                <Input
+                  title="Data Limite:"
+                  labelStyle={[styles.label]}
+                  editable={false}
+                  height={45}
+                  value={selectedDate.toLocaleDateString()}
+                  onPress={() => setShowDatePicker(true)}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setShowTimePicker(true)}
+                style={{ width: 130 }}
+              >
+                <Input
+                  title="Hora Limite:"
+                  labelStyle={[styles.label]}
+                  editable={false}
+                  height={45}
+                  value={selectedTime.toLocaleTimeString()}
+                  onPress={() => setShowTimePicker(true)}
+                />
+              </TouchableOpacity>
+            </View>
+            <CustomDateTimePicker
+              onDateChange={setSelectedDate}
+              setShow={setShowDatePicker}
+              show={showDatePicker}
+              type="date"
+            />
+
+            <CustomDateTimePicker
+              onDateChange={setSelectedTime}
+              setShow={setShowTimePicker}
+              show={showTimePicker}
+              type="time"
+            />
           </View>
 
           <View style={styles.containerFlags}>
@@ -100,7 +152,7 @@ export const AuthProviderList = (props: any) => {
 
       <Modalize
         ref={modalizeRef}
-        childrenStyle={{ height: 500 }}
+        childrenStyle={{ height: Dimensions.get("window").height / 1.7 }}
         adjustToContentHeight={true}
       >
         {_container()}

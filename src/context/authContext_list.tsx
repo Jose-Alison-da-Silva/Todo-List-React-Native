@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { Modalize } from "react-native-modalize";
 import Input from "../components/Input";
 import { theme } from "../styles/theme";
 import Flag from "../components/Flag";
 import CustomDateTimePicker from "../components/CustomDateTimePicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const AuthContextList = createContext({});
 
@@ -31,6 +33,7 @@ export const AuthProviderList = (props: any) => {
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [taskList, setTaskList] = useState([]);
 
   const openModal = () => {
     modalizeRef.current?.open();
@@ -43,11 +46,61 @@ export const AuthProviderList = (props: any) => {
   const _renderFlags = () => {
     return flags.map((item, index) => {
       return (
-        <TouchableOpacity key={index}>
-          <Flag caption={item.caption} color={item.color} />
+        <TouchableOpacity
+          key={index}
+          onPress={() => setSelectedFlag(item.caption)}
+        >
+          <Flag
+            caption={item.caption}
+            color={item.color}
+            selected={item.caption === selectedFlag}
+          />
         </TouchableOpacity>
       );
     });
+  };
+
+  const handleSave = async () => {
+    if (!title || !description || !selectedFlag) {
+      return Alert.alert("Preencha todos os campos");
+    }
+
+    try {
+      const data = {
+        id: Date.now(),
+        title: title,
+        description: description,
+        flag: selectedFlag,
+        fullDate: new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          selectedDate.getDate(),
+          selectedTime.getHours(),
+          selectedTime.getMinutes()
+        ).toISOString(),
+      };
+      const tasks = await AsyncStorage.getItem("task");
+
+      let dataTasks = tasks ? JSON.parse(tasks) : [];
+
+      dataTasks.push(data);
+
+      await AsyncStorage.setItem("task", JSON.stringify(dataTasks));
+
+      setTaskList(dataTasks);
+      clearStates();
+      closeModal();
+    } catch (error) {
+      console.log("Erro ao salvar", error);
+    }
+  };
+
+  const clearStates = () => {
+    setTitle("");
+    setDescription("");
+    setSelectedFlag("Urgente");
+    setSelectedDate(new Date());
+    setSelectedTime(new Date());
   };
 
   const _container = () => {
@@ -62,7 +115,7 @@ export const AuthProviderList = (props: any) => {
           </TouchableOpacity>
 
           <Text style={styles.title}>Criar Tarefa</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleSave}>
             <AntDesign name="check" size={30} />
           </TouchableOpacity>
         </View>
@@ -147,7 +200,7 @@ export const AuthProviderList = (props: any) => {
   };
 
   return (
-    <AuthContextList.Provider value={{ openModal }}>
+    <AuthContextList.Provider value={{ openModal, taskList }}>
       {props.children}
 
       <Modalize

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 import { styles } from "./style";
 
 type Props = {
@@ -10,14 +10,14 @@ type Props = {
 
 export default function Flag({ caption, color, selected }: Props) {
   return (
-    <TouchableOpacity
+    <View
       style={[
         styles.flag,
         { backgroundColor: color },
         selected && { borderWidth: 2 },
       ]}
     >
-      <Text style={{ color: "#fff" }}>{caption}</Text>
-    </TouchableOpacity>
+      <Text style={{ color: "#fff", fontWeight: "bold" }}>{caption}</Text>
+    </View>
   );
 }

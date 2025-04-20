@@ -8,8 +8,8 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 
 export default function Index() {
-  const [email, setEmail] = useState("a");
-  const [password, setPassword] = useState("a");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
